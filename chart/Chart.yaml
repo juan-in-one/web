@@ -1,0 +1,6 @@
+apiVersion: v2
+name: web
+description: Chart de Helm para web, frontend de la plataforma juan-in-one
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

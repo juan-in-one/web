@@ -1,0 +1,56 @@
+image:
+  repository: ghcr.io/juan-in-one/web
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+# Vacío por defecto (útil en local con imagen ya cargada). En real, ArgoCD lo
+# rellena con un Secret dockerconfigjson creado aparte en el clúster (no en
+# Git) — ver gitops/apps/web.yaml.
+imagePullSecrets: []
+
+# Ignorado si autoscaling.enabled es true (el HPA manda en ese caso)
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080 # nginx-unprivileged escucha aquí, no en el 80
+
+ingress:
+  enabled: true
+  className: nginx
+  host: web.local
+  path: /
+  pathType: Prefix
+  # Vacío por defecto: la plataforma (gitops/apps/web.yaml) decide bajo qué
+  # host real se expone, compartido con car-api/sport-api.
+  annotations: {}
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 70
+
+# Mismo hardening que car-api/sport-api — nginx-unprivileged está pensado
+# justo para correr así (usuario no-root, todo bajo /tmp).
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
