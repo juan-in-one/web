@@ -11,6 +11,9 @@ RUN npm run build
 # no-root + readOnlyRootFilesystem que usan car-api/sport-api.
 FROM nginxinc/nginx-unprivileged:1.27-alpine
 COPY --from=build /app/dist /usr/share/nginx/html
+# Fallback de SPA para que las rutas de React Router (/coche, /retos...)
+# sobrevivan a un refresco de página — ver nginx.conf.
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \

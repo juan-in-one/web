@@ -9,6 +9,18 @@
   }
 }
 
+.back-link {
+  display: inline-block;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 14px;
+  margin-bottom: 24px;
+
+  &:hover {
+    color: var(--text-h);
+  }
+}
+
 #page-header {
   text-align: center;
   margin-bottom: 40px;
@@ -22,6 +34,59 @@
   }
 }
 
+.vehicle-info {
+  color: var(--accent);
+  font-weight: 500;
+  margin-bottom: 4px !important;
+}
+
+/* Home: hub de navegación */
+.hub-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hub-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 40px 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition:
+    box-shadow 0.2s,
+    border-color 0.2s;
+
+  &:hover {
+    box-shadow: var(--shadow);
+    border-color: var(--accent-border);
+  }
+
+  h2 {
+    margin: 0;
+    color: var(--text-h);
+  }
+
+  p {
+    color: var(--text);
+    font-size: 14px;
+  }
+}
+
+.hub-icon {
+  font-size: 40px;
+  line-height: 1;
+}
+
 .loading,
 .empty {
   color: var(--text);
@@ -31,7 +96,7 @@
   color: #e5484d;
 }
 
-.challenge-section {
+.item-section {
   margin-bottom: 40px;
 
   h2 {
@@ -41,7 +106,7 @@
   }
 }
 
-.challenge-list {
+.item-list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -50,7 +115,7 @@
   gap: 12px;
 }
 
-.challenge-card {
+.item-card {
   display: flex;
   align-items: flex-start;
   gap: 16px;
@@ -64,12 +129,12 @@
   }
 }
 
-.challenge-icon {
+.item-icon {
   font-size: 28px;
   line-height: 1;
 }
 
-.challenge-body {
+.item-body {
   flex: 1;
 
   h3 {
@@ -80,7 +145,7 @@
   }
 }
 
-.challenge-meta {
+.item-meta {
   display: flex;
   gap: 10px;
   font-size: 14px;
@@ -94,7 +159,7 @@
   }
 }
 
-.challenge-stats {
+.item-stats {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -107,7 +172,7 @@
     border-radius: 999px;
   }
 
-  .challenge-result {
+  .item-highlight {
     background: var(--code-bg);
     color: var(--text-h);
   }
