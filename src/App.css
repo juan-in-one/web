@@ -134,6 +134,23 @@
   line-height: 1;
 }
 
+.item-delete {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 4px;
+  border-radius: 6px;
+  opacity: 0.4;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 1;
+    background: var(--accent-bg);
+  }
+}
+
 .item-body {
   flex: 1;
 
@@ -175,5 +192,94 @@
   .item-highlight {
     background: var(--code-bg);
     color: var(--text-h);
+  }
+}
+
+.add-toggle {
+  margin-top: 16px;
+  font-size: 15px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: border-color 0.2s;
+
+  &:hover {
+    border-color: var(--accent-border);
+  }
+}
+
+.add-form {
+  margin-top: 16px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text);
+    flex: 1;
+  }
+
+  input,
+  select {
+    font: inherit;
+    font-size: 15px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text-h);
+
+    &:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+  }
+}
+
+.form-row {
+  display: flex;
+  gap: 14px;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+
+  button {
+    font: inherit;
+    font-size: 14px;
+    padding: 8px 18px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    color: var(--bg);
+    background: var(--accent);
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+  }
+
+  .btn-secondary {
+    color: var(--text);
+    background: transparent;
+    border: 1px solid var(--border);
   }
 }

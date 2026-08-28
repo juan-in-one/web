@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { fetchMaintenanceEvents } from '../api'
-import type { MaintenanceEvent } from '../types'
+import { createMaintenanceEvent, deleteMaintenanceEvent, fetchMaintenanceEvents } from '../api'
+import type { MaintenanceEvent, MaintenanceType } from '../types'
 
 const TYPE_ICON: Record<MaintenanceEvent['type'], string> = {
   oil_change: '🛢️',
@@ -25,7 +25,17 @@ function formatDate(iso: string): string {
   })
 }
 
-function EventCard({ event }: { event: MaintenanceEvent }) {
+function EventCard({ event, onDeleted }: { event: MaintenanceEvent; onDeleted: () => void }) {
+  async function handleDelete() {
+    if (!confirm(`¿Borrar "${TYPE_LABEL[event.type]}" (${event.odometer_km} km)?`)) return
+    try {
+      await deleteMaintenanceEvent(event.id)
+      onDeleted()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Error al borrar')
+    }
+  }
+
   return (
     <li className="item-card">
       <span className="item-icon" aria-hidden="true">
@@ -43,7 +53,86 @@ function EventCard({ event }: { event: MaintenanceEvent }) {
           </p>
         )}
       </div>
+      <button type="button" className="item-delete" aria-label="Borrar" onClick={handleDelete}>
+        🗑️
+      </button>
     </li>
+  )
+}
+
+function AddEventForm({ onCreated }: { onCreated: () => void }) {
+  const [open, setOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setError(null)
+    setSaving(true)
+    const formEl = e.currentTarget
+    const form = new FormData(formEl)
+    try {
+      await createMaintenanceEvent({
+        type: form.get('type') as MaintenanceType,
+        event_date: form.get('event_date') as string,
+        odometer_km: Number(form.get('odometer_km')),
+        notes: (form.get('notes') as string) || null,
+      })
+      formEl.reset()
+      setOpen(false)
+      onCreated()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (!open) {
+    return (
+      <button type="button" className="add-toggle" onClick={() => setOpen(true)}>
+        + Añadir evento
+      </button>
+    )
+  }
+
+  return (
+    <form className="add-form" onSubmit={handleSubmit}>
+      <div className="form-row">
+        <label>
+          Tipo
+          <select name="type" required defaultValue="oil_change">
+            <option value="oil_change">Cambio de aceite</option>
+            <option value="itv">ITV</option>
+            <option value="timing_belt">Distribución</option>
+            <option value="other">Otro</option>
+          </select>
+        </label>
+        <label>
+          Fecha
+          <input type="date" name="event_date" required />
+        </label>
+      </div>
+      <div className="form-row">
+        <label>
+          Kilómetros
+          <input type="number" name="odometer_km" min="0" required />
+        </label>
+      </div>
+      <label>
+        Notas (opcional)
+        <input type="text" name="notes" />
+      </label>
+      {error && <p className="error">{error}</p>}
+      <div className="form-actions">
+        <button type="button" className="btn-secondary" onClick={() => setOpen(false)}>
+          Cancelar
+        </button>
+        <button type="submit" disabled={saving}>
+          {saving ? 'Guardando…' : 'Guardar'}
+        </button>
+      </div>
+    </form>
   )
 }
 
@@ -51,11 +140,13 @@ export default function Coche() {
   const [events, setEvents] = useState<MaintenanceEvent[] | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
+  function load() {
     fetchMaintenanceEvents()
       .then(setEvents)
       .catch((err: Error) => setError(err.message))
-  }, [])
+  }
+
+  useEffect(load, [])
 
   return (
     <main id="page">
@@ -81,10 +172,11 @@ export default function Coche() {
           ) : (
             <ul className="item-list">
               {events.map((e) => (
-                <EventCard key={e.id} event={e} />
+                <EventCard key={e.id} event={e} onDeleted={load} />
               ))}
             </ul>
           )}
+          <AddEventForm onCreated={load} />
         </section>
       )}
     </main>

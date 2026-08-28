@@ -22,3 +22,45 @@ export async function fetchMaintenanceEvents(): Promise<MaintenanceEvent[]> {
   }
   return res.json()
 }
+
+export async function createChallenge(
+  payload: Omit<Challenge, 'id' | 'created_at'>,
+): Promise<Challenge> {
+  const res = await fetch(`${SPORT_API_BASE}/challenges`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  if (!res.ok) {
+    throw new Error(`sport-api respondió ${res.status}`)
+  }
+  return res.json()
+}
+
+export async function createMaintenanceEvent(
+  payload: Omit<MaintenanceEvent, 'id' | 'created_at'>,
+): Promise<MaintenanceEvent> {
+  const res = await fetch(`${CAR_API_BASE}/maintenance-events`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  if (!res.ok) {
+    throw new Error(`car-api respondió ${res.status}`)
+  }
+  return res.json()
+}
+
+export async function deleteChallenge(id: string): Promise<void> {
+  const res = await fetch(`${SPORT_API_BASE}/challenges/${id}`, { method: 'DELETE' })
+  if (!res.ok) {
+    throw new Error(`sport-api respondió ${res.status}`)
+  }
+}
+
+export async function deleteMaintenanceEvent(id: string): Promise<void> {
+  const res = await fetch(`${CAR_API_BASE}/maintenance-events/${id}`, { method: 'DELETE' })
+  if (!res.ok) {
+    throw new Error(`car-api respondió ${res.status}`)
+  }
+}
