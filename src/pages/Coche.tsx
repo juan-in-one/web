@@ -1,13 +1,25 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { createMaintenanceEvent, deleteMaintenanceEvent, fetchMaintenanceEvents } from '../api'
 import type { MaintenanceEvent, MaintenanceType } from '../types'
+import {
+  IconArrowLeft,
+  IconCalendar,
+  IconCar,
+  IconClipboardCheck,
+  IconGauge,
+  IconGear,
+  IconOilDrop,
+  IconPlus,
+  IconTrash,
+  IconWrench,
+} from '../icons'
 
-const TYPE_ICON: Record<MaintenanceEvent['type'], string> = {
-  oil_change: '🛢️',
-  itv: '📋',
-  timing_belt: '⚙️',
-  other: '🔧',
+const TYPE_ICON: Record<MaintenanceEvent['type'], ReactNode> = {
+  oil_change: <IconOilDrop />,
+  itv: <IconClipboardCheck />,
+  timing_belt: <IconGear />,
+  other: <IconWrench />,
 }
 
 const TYPE_LABEL: Record<MaintenanceEvent['type'], string> = {
@@ -38,23 +50,29 @@ function EventCard({ event, onDeleted }: { event: MaintenanceEvent; onDeleted: (
 
   return (
     <li className="item-card">
-      <span className="item-icon" aria-hidden="true">
+      <div className="icon-chip item-icon" aria-hidden="true">
         {TYPE_ICON[event.type]}
-      </span>
+      </div>
       <div className="item-body">
         <h3>{TYPE_LABEL[event.type]}</h3>
         <p className="item-meta">
-          <span>{formatDate(event.event_date)}</span>
-          <span>{event.odometer_km.toLocaleString('es-ES')} km</span>
+          <span>
+            <IconCalendar />
+            {formatDate(event.event_date)}
+          </span>
+          <span>
+            <IconGauge />
+            {event.odometer_km.toLocaleString('es-ES')} km
+          </span>
         </p>
         {event.notes && (
-          <p className="item-stats">
-            <span className="item-highlight">{event.notes}</span>
-          </p>
+          <div className="item-tags">
+            <span className="tag tag-accent">{event.notes}</span>
+          </div>
         )}
       </div>
       <button type="button" className="item-delete" aria-label="Borrar" onClick={handleDelete}>
-        🗑️
+        <IconTrash />
       </button>
     </li>
   )
@@ -91,7 +109,8 @@ function AddEventForm({ onCreated }: { onCreated: () => void }) {
   if (!open) {
     return (
       <button type="button" className="add-toggle" onClick={() => setOpen(true)}>
-        + Añadir evento
+        <IconPlus />
+        Añadir evento
       </button>
     )
   }
@@ -151,26 +170,36 @@ export default function Coche() {
   return (
     <main id="page">
       <Link to="/" className="back-link">
-        ← Inicio
+        <IconArrowLeft />
+        Inicio
       </Link>
+
       <header id="page-header">
-        <h1>Coche</h1>
-        {/* Dato fijo por ahora, no viene de car-api todavía — ver
-            wiki/log.md 2026-08-27 sobre por qué se dejó así de momento. */}
-        <p className="vehicle-info">Alfa Romeo 147 · 2005 · 1.9 JTD</p>
-        <p>Historial de mantenimiento.</p>
+        <div className="icon-chip" style={{ width: 52, height: 52 }} aria-hidden="true">
+          <IconCar size={26} />
+        </div>
+        <div>
+          <span className="eyebrow">Coche</span>
+          <h1>Alfa Romeo 147</h1>
+        </div>
       </header>
+      <p className="page-subtitle">
+        <span className="vehicle-info">2005 · 1.9 JTD</span> · historial de mantenimiento
+      </p>
 
       {error && <p className="error">No se ha podido cargar car-api: {error}</p>}
       {!error && events === null && <p className="loading">Cargando eventos…</p>}
 
       {events !== null && (
         <section className="item-section">
-          <h2>Eventos ({events.length})</h2>
+          <div className="section-head">
+            <span className="eyebrow">Eventos</span>
+            <span style={{ fontSize: 13, color: 'var(--text-dim)' }}>{events.length}</span>
+          </div>
           {events.length === 0 ? (
             <p className="empty">Todavía ningún evento registrado.</p>
           ) : (
-            <ul className="item-list">
+            <ul className="item-list" style={{ marginBottom: 24 }}>
               {events.map((e) => (
                 <EventCard key={e.id} event={e} onDeleted={load} />
               ))}

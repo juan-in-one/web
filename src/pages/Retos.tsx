@@ -1,11 +1,20 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { createChallenge, deleteChallenge, fetchChallenges } from '../api'
 import type { Challenge, ChallengeCategory, ChallengeStatus } from '../types'
+import {
+  IconArrowLeft,
+  IconCalendar,
+  IconMountain,
+  IconPin,
+  IconPlus,
+  IconRunner,
+  IconTrash,
+} from '../icons'
 
-const CATEGORY_ICON: Record<Challenge['category'], string> = {
-  race: '🏃',
-  mountain: '⛰️',
+const CATEGORY_ICON: Record<Challenge['category'], ReactNode> = {
+  race: <IconRunner />,
+  mountain: <IconMountain />,
 }
 
 function formatDate(iso: string): string {
@@ -28,24 +37,32 @@ function ChallengeCard({ challenge, onDeleted }: { challenge: Challenge; onDelet
   }
 
   return (
-    <li className="item-card">
-      <span className="item-icon" aria-hidden="true">
+    <li className={`item-card${challenge.status === 'pending' ? ' is-pending' : ''}`}>
+      <div className="icon-chip item-icon" aria-hidden="true">
         {CATEGORY_ICON[challenge.category]}
-      </span>
+      </div>
       <div className="item-body">
         <h3>{challenge.name}</h3>
         <p className="item-meta">
-          {challenge.location && <span>{challenge.location}</span>}
-          <span>{formatDate(challenge.challenge_date)}</span>
+          {challenge.location && (
+            <span>
+              <IconPin />
+              {challenge.location}
+            </span>
+          )}
+          <span>
+            <IconCalendar />
+            {formatDate(challenge.challenge_date)}
+          </span>
         </p>
-        <p className="item-stats">
-          {challenge.distance_km != null && <span>{challenge.distance_km} km</span>}
-          {challenge.elevation_m != null && <span>{challenge.elevation_m} m desnivel</span>}
-          {challenge.result && <span className="item-highlight">{challenge.result}</span>}
-        </p>
+        <div className="item-tags">
+          {challenge.distance_km != null && <span className="tag">{challenge.distance_km} km</span>}
+          {challenge.elevation_m != null && <span className="tag">{challenge.elevation_m} m desnivel</span>}
+          {challenge.result && <span className="tag tag-accent">{challenge.result}</span>}
+        </div>
       </div>
       <button type="button" className="item-delete" aria-label="Borrar" onClick={handleDelete}>
-        🗑️
+        <IconTrash />
       </button>
     </li>
   )
@@ -87,7 +104,8 @@ function AddChallengeForm({ onCreated }: { onCreated: () => void }) {
   if (!open) {
     return (
       <button type="button" className="add-toggle" onClick={() => setOpen(true)}>
-        + Añadir reto
+        <IconPlus />
+        Añadir reto
       </button>
     )
   }
@@ -173,12 +191,20 @@ export default function Retos() {
   return (
     <main id="page">
       <Link to="/" className="back-link">
-        ← Inicio
+        <IconArrowLeft />
+        Inicio
       </Link>
+
       <header id="page-header">
-        <h1>Retos</h1>
-        <p>Carreras, ultras y montaña — lo conseguido y lo que queda por delante.</p>
+        <div className="icon-chip" style={{ width: 52, height: 52 }} aria-hidden="true">
+          <IconRunner size={26} />
+        </div>
+        <div>
+          <span className="eyebrow">Retos</span>
+          <h1>Carreras &amp; montaña</h1>
+        </div>
       </header>
+      <p className="page-subtitle">Lo conseguido y lo que queda por delante</p>
 
       {error && <p className="error">No se ha podido cargar sport-api: {error}</p>}
       {!error && challenges === null && <p className="loading">Cargando retos…</p>}
@@ -186,7 +212,10 @@ export default function Retos() {
       {challenges !== null && (
         <>
           <section className="item-section">
-            <h2>Conseguidos ({completed.length})</h2>
+            <div className="section-head">
+              <span className="eyebrow">Conseguidos</span>
+              <span style={{ fontSize: 13, color: 'var(--text-dim)' }}>{completed.length}</span>
+            </div>
             {completed.length === 0 ? (
               <p className="empty">Todavía ninguno registrado.</p>
             ) : (
@@ -199,11 +228,14 @@ export default function Retos() {
           </section>
 
           <section className="item-section">
-            <h2>Pendientes ({pending.length})</h2>
+            <div className="section-head">
+              <span className="eyebrow">Pendientes</span>
+              <span style={{ fontSize: 13, color: 'var(--text-dim)' }}>{pending.length}</span>
+            </div>
             {pending.length === 0 ? (
               <p className="empty">Sin objetivos pendientes todavía.</p>
             ) : (
-              <ul className="item-list">
+              <ul className="item-list" style={{ marginBottom: 24 }}>
                 {pending.map((c) => (
                   <ChallengeCard key={c.id} challenge={c} onDeleted={load} />
                 ))}
