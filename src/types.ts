@@ -28,3 +28,35 @@ export interface MaintenanceEvent {
   notes: string | null
   created_at: string
 }
+
+// Coincide con el modelo real de academy-api (app/schemas.py).
+export type CertificationStatus = 'completed' | 'in_progress' | 'planned'
+
+export interface Certification {
+  id: string
+  name: string
+  issuer: string
+  status: CertificationStatus
+  issued_date: string | null
+  target_date: string | null
+  notes: string | null
+  created_at: string
+}
+
+export interface Goal {
+  id: string
+  name: string
+  target_minutes: number
+  active: boolean
+  created_at: string
+}
+
+export interface GoalTodayStatus {
+  goal_id: string
+  goal_name: string
+  date: string
+  target_minutes: number
+  checked_in: boolean
+  minutes: number
+  goal_met: boolean
+}

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { IconArrowUpRight, IconCar, IconRunner } from '../icons'
+import { IconArrowUpRight, IconCar, IconGraduationCap, IconRunner } from '../icons'
 
 export default function Home() {
   return (
@@ -43,6 +43,22 @@ export default function Home() {
             <p>Carreras, ultras y montaña.</p>
           </div>
           <div className="hub-card-stat">Conseguidos y pendientes</div>
+        </Link>
+
+        <Link to="/academia" className="hub-card">
+          <div className="hub-card-top">
+            <div className="icon-chip" aria-hidden="true">
+              <IconGraduationCap />
+            </div>
+            <span className="hub-card-arrow">
+              <IconArrowUpRight />
+            </span>
+          </div>
+          <div>
+            <h2>Academia</h2>
+            <p>Certificaciones y objetivos diarios.</p>
+          </div>
+          <div className="hub-card-stat">Inglés, proyectos y AWS</div>
         </Link>
       </div>
     </main>

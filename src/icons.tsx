@@ -135,3 +135,30 @@ export function IconWrench({ size = 21 }: IconProps) {
     </svg>
   )
 }
+
+export function IconGraduationCap({ size = 24 }: IconProps) {
+  return (
+    <svg {...base} width={size} height={size}>
+      <path d="M2 9l10-4.5L22 9l-10 4.5L2 9z" />
+      <path d="M6 11.2V16c0 1.4 2.7 3 6 3s6-1.6 6-3v-4.8" />
+      <path d="M22 9v6" />
+    </svg>
+  )
+}
+
+export function IconBook({ size = 21 }: IconProps) {
+  return (
+    <svg {...base} width={size} height={size}>
+      <path d="M4 4.5A2.5 2.5 0 0 1 6.5 3H12v18H6.5A2.5 2.5 0 0 0 4 23.5v-19z" />
+      <path d="M20 4.5A2.5 2.5 0 0 0 17.5 3H12v18h5.5a2.5 2.5 0 0 1 2.5 2.5v-19z" />
+    </svg>
+  )
+}
+
+export function IconCode({ size = 21 }: IconProps) {
+  return (
+    <svg {...base} width={size} height={size}>
+      <path d="M9 8L4 12l5 4M15 8l5 4-5 4" />
+    </svg>
+  )
+}
