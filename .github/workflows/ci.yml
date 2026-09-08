@@ -15,9 +15,35 @@ permissions:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }} # se resuelve a "juan-in-one/web"
+  GITLEAKS_VERSION: "8.30.1"
+  GITLEAKS_SHA256_LINUX_X64: "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
 
 jobs:
+  secrets-scan:
+    # Igual que en car-api/sport-api/academy-api (workflow compartido
+    # juan-in-one/.github): Gitleaks sobre todo el historial de git, con el
+    # binario oficial (MIT) en vez de la Action empaquetada, que exige
+    # licencia de pago en repos privados.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código del repo (con historial completo)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Instalar Gitleaks (versión fija, checksum verificado)
+        run: |
+          curl -sSL -o gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256_LINUX_X64}  gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf gitleaks.tar.gz gitleaks
+          sudo mv gitleaks /usr/local/bin/gitleaks
+
+      - name: Gitleaks — detección de secretos en todo el historial
+        run: gitleaks detect --source . --redact -v
+
   build-and-push:
+    needs: [secrets-scan]
     runs-on: ubuntu-latest
     steps:
       - name: Descargar el código del repo
@@ -30,7 +56,8 @@ jobs:
           scan-ref: .
           format: table
           output: trivy-config.txt
-          exit-code: "0" # informativo por ahora, igual que en car-api/sport-api
+          severity: CRITICAL,HIGH
+          exit-code: "1"
 
       - name: Volcar hallazgos de configuración al resumen del job
         if: always()
@@ -52,9 +79,10 @@ jobs:
         run: npm ci
 
       - name: oxlint — análisis estático del código TypeScript/React
-        # Equivalente a Semgrep en las APIs Python: linter propio del
-        # proyecto, ya configurado en .oxlintrc.json.
-        run: npm run lint -- --format=github > oxlint.txt || true
+        # Sin "|| true": un aviso de oxlint bloquea, igual que Ruff en las
+        # APIs Python — es barato de arreglar, no aplica la misma cautela
+        # que con CVEs de terceros.
+        run: npm run lint -- --format=github > oxlint.txt
 
       - name: Volcar hallazgos de oxlint al resumen del job
         if: always()
@@ -66,14 +94,6 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Autenticarse en GHCR
-        if: github.event_name == 'push'
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Calcular etiquetas de la imagen
         id: meta
         uses: docker/metadata-action@v5
@@ -83,11 +103,13 @@ jobs:
             type=sha,format=short
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Construir y publicar la imagen
+      - name: Construir la imagen (sin publicar todavía)
+        # push:false a propósito, igual que en el workflow compartido de las
+        # APIs: se escanea la imagen ANTES de publicarla, no después.
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: ${{ github.event_name == 'push' }}
+          push: false
           load: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -99,7 +121,9 @@ jobs:
           image-ref: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           format: table
           output: trivy-image.txt
-          exit-code: "0"
+          severity: CRITICAL,HIGH
+          ignore-unfixed: "true"
+          exit-code: "1"
 
       - name: Volcar hallazgos de la imagen al resumen del job
         if: always()
@@ -110,6 +134,21 @@ jobs:
             cat trivy-image.txt
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Autenticarse en GHCR
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publicar la imagen (solo si los escaneos anteriores han pasado)
+        if: github.event_name == 'push'
+        run: |
+          while IFS= read -r tag; do
+            [ -n "$tag" ] && docker push "$tag"
+          done <<< "${{ steps.meta.outputs.tags }}"
 
       - name: Arrancar el contenedor para el DAST
         # web no tiene base de datos: basta con levantar la imagen ya
@@ -127,8 +166,11 @@ jobs:
         uses: zaproxy/action-baseline@v0.15.0
         with:
           target: "http://localhost:8080/"
-          cmd_options: "-a"
-          fail_action: false
+          # -I: solo bloquea por un FAIL real, no por los 11 WARN de
+          # cabeceras de seguridad recomendadas (CSP, Permissions-Policy...)
+          # — comprobado en local: hoy 0 FAIL / 11 WARN.
+          cmd_options: "-a -I"
+          fail_action: true
           allow_issue_writing: false
 
       - name: Volcar hallazgos de ZAP al resumen del job
