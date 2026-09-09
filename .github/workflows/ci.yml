@@ -1,9 +1,10 @@
 name: CI
 
 on:
+  # Solo al fusionar a main — la CD de verdad (build, escaneos, firma,
+  # SBOM, publicar, DAST). Lo que hay que validar antes de fusionar vive en
+  # pr-checks.yml (pull_request), que nunca puede publicar nada.
   push:
-    branches: [main]
-  pull_request:
     branches: [main]
 
 # Permiso explícito para que el GITHUB_TOKEN automático de esta ejecución
