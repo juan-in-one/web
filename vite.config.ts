@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -11,6 +12,15 @@ export default defineConfig({
       // React llama siempre a rutas relativas ("/api/sport-api/..."), igual
       // en local que en producción, sin CORS de por medio.
       '/api': 'http://juan-in-one.local',
+    },
+  },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/test-setup.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json-summary', 'json'],
     },
   },
 })

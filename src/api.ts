@@ -113,7 +113,10 @@ export async function fetchGoalToday(goalId: string): Promise<GoalTodayStatus> {
 
 // "date" en formato YYYY-MM-DD (día local del navegador, no UTC — para que
 // marcar "hoy" a última hora de la noche no cuente para el día siguiente).
-function todayLocalDate(): string {
+// Exportada (no solo de uso interno) para poder testearla directamente:
+// es la pieza con más probabilidad real de un bug sutil de fecha/huso
+// horario en toda la app.
+export function todayLocalDate(): string {
   const now = new Date()
   const offsetMs = now.getTimezoneOffset() * 60_000
   return new Date(now.getTime() - offsetMs).toISOString().slice(0, 10)

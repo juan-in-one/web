@@ -1,0 +1,56 @@
+name: PR checks
+
+# Deliberadamente separado de ci.yml: ese workflow es el pipeline de
+# entrega (build, escaneos que bloquean, firma, publicación) y ya corre
+# tanto en push como en PR. Este es solo para la PR — mismo criterio que
+# el equivalente en las APIs Python (juan-in-one/.github/pr-checks.yml).
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  branch-name:
+    runs-on: ubuntu-latest
+    steps:
+      - name: La rama de origen debe seguir la convención feat/*
+        run: |
+          if [[ "${{ github.head_ref }}" != feat/* ]]; then
+            echo "::error::La rama '${{ github.head_ref }}' no sigue la convención feat/* — renómbrala antes de fusionar."
+            exit 1
+          fi
+          echo "OK: '${{ github.head_ref }}' sigue la convención."
+
+  dependency-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código del repo
+        uses: actions/checkout@v4
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código del repo
+        uses: actions/checkout@v4
+
+      - name: Preparar Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Vitest con cobertura
+        run: npm run test:coverage
+
+      - name: Comentar la cobertura en la PR
+        uses: davelosert/vitest-coverage-report-action@v2
