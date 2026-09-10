@@ -18,12 +18,24 @@ npm run dev
 En local, Vite hace de proxy de `/api/*` hacia el clúster real (`juan-in-one.local`), así el código nunca
 sabe si está hablando con el backend local o el desplegado.
 
+## Pantallas
+
+- **Inicio** — enlaza a las tres siguientes.
+- **Coche** — eventos de mantenimiento de `car-api`.
+- **Retos** — retos deportivos de `sport-api`.
+- **Academia** — certificaciones y objetivos diarios de `academy-api`, con el check-in del día.
+
 ## Tests
 
 ```bash
 npm run test
 npm run test:coverage   # con informe de cobertura
 ```
+
+Vitest + Testing Library, montado desde cero (no había ningún framework de tests antes). El caso más
+concreto — `todayLocalDate()` — existe porque un check-in de "hoy" hecho a última hora de la noche no debe
+contar para el día siguiente: la fecha se calcula en huso horario local del navegador, nunca en UTC, y el
+test cubre justo el caso límite (23:30 de la noche) que un `new Date().toISOString()` sin más rompería.
 
 ## CI/CD
 
